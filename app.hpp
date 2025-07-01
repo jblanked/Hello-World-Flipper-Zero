@@ -44,7 +44,6 @@ private:
     FuriTimer *timer = nullptr;
 
     // Static callback functions
-    static uint32_t callback_to_submenu(void *context);
     static uint32_t callback_exit_app(void *context);
     static void submenu_choices_callback(void *context, uint32_t index);
     static void settings_item_selected_callback(void *context, uint32_t index);
@@ -65,6 +64,8 @@ public:
     //
     bool isBoardConnected(); // check if the board is connected
 
+    size_t getBytesReceived() const noexcept { return flipperHttp ? flipperHttp->bytes_received : 0; }
+    size_t getContentLength() const noexcept { return flipperHttp ? flipperHttp->content_length : 0; }
     HTTPState getHttpState() const noexcept { return flipperHttp ? flipperHttp->state : INACTIVE; }
     bool setHttpState(HTTPState state = IDLE) noexcept
     {

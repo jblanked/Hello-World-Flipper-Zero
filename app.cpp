@@ -1,46 +1,5 @@
 #include "app.hpp"
 
-uint32_t HelloWorldApp::callback_to_submenu(void *context)
-{
-    HelloWorldApp *app = (HelloWorldApp *)context;
-    if (app)
-    {
-        // Stop and cleanup timer first
-        if (app->timer)
-        {
-            furi_timer_stop(app->timer);
-        }
-
-        // Clean up viewport if it exists
-        if (app->gui && app->viewPort)
-        {
-            gui_remove_view_port(app->gui, app->viewPort);
-            view_port_free(app->viewPort);
-            app->viewPort = nullptr;
-        }
-
-        // quick reset run when returning to submenu
-        if (app->run)
-        {
-            app->run.reset();
-        }
-
-        // quick reset settings when returning to submenu
-        if (app->settings)
-        {
-            app->settings.reset();
-        }
-
-        // quick reset about when returning to submenu
-        if (app->about)
-        {
-            app->about.reset();
-        }
-    }
-
-    return HelloWorldViewSubmenu;
-}
-
 uint32_t HelloWorldApp::callback_exit_app(void *context)
 {
     UNUSED(context);
@@ -88,6 +47,22 @@ void HelloWorldApp::viewPortDraw(Canvas *canvas, void *context)
         if (run->isActive())
         {
             run->updateDraw(canvas);
+        }
+        else
+        {
+            // Stop and cleanup timer first
+            if (app->timer)
+            {
+                furi_timer_stop(app->timer);
+            }
+
+            // Clean up viewport if it exists
+            if (app->gui && app->viewPort)
+            {
+                gui_remove_view_port(app->gui, app->viewPort);
+                view_port_free(app->viewPort);
+                app->viewPort = nullptr;
+            }
         }
     }
 }

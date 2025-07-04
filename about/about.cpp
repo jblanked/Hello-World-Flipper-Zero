@@ -16,13 +16,6 @@ uint32_t HelloWorldAbout::callbackToSubmenu(void *context)
     return HelloWorldViewSubmenu;
 }
 
-bool HelloWorldAbout::init(ViewDispatcher **viewDispatcher, void *appContext)
-{
-    viewDispatcherRef = viewDispatcher;
-    this->appContext = appContext;
-    return easy_flipper_set_widget(&widget, HelloWorldViewAbout, "Simple C++ Flipper app\n\n\n\n\nwww.github.com/jblanked", callbackToSubmenu, viewDispatcherRef);
-}
-
 void HelloWorldAbout::free()
 {
     if (widget && viewDispatcherRef && *viewDispatcherRef)
@@ -31,4 +24,11 @@ void HelloWorldAbout::free()
         widget_free(widget);
         widget = nullptr;
     }
+}
+
+bool HelloWorldAbout::init(ViewDispatcher **viewDispatcher, void *appContext)
+{
+    viewDispatcherRef = viewDispatcher;
+    this->appContext = appContext;
+    return easy_flipper_set_widget(&widget, HelloWorldViewAbout, "Simple C++ Flipper app\n\n\n\n\nwww.github.com/jblanked", callbackToSubmenu, viewDispatcherRef);
 }

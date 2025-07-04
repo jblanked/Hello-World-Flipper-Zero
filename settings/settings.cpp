@@ -11,48 +11,22 @@ HelloWorldSettings::~HelloWorldSettings()
     free();
 }
 
-void HelloWorldSettings::settings_item_selected_callback(void *context, uint32_t index)
-{
-    HelloWorldSettings *settings = (HelloWorldSettings *)context;
-    settings->settingsItemSelected(index);
-}
-
-uint32_t HelloWorldSettings::callback_to_submenu(void *context)
-{
-    UNUSED(context);
-    return HelloWorldViewSubmenu;
-}
-
-uint32_t HelloWorldSettings::callback_to_settings(void *context)
+uint32_t HelloWorldSettings::callbackToSettings(void *context)
 {
     UNUSED(context);
     return HelloWorldViewSettings;
 }
 
-bool HelloWorldSettings::init(ViewDispatcher **view_dispatcher, void *appContext)
+uint32_t HelloWorldSettings::callbackToSubmenu(void *context)
 {
-    view_dispatcher_ref = view_dispatcher;
-    this->appContext = appContext;
-
-    if (!easy_flipper_set_variable_item_list(&variable_item_list, HelloWorldViewSettings,
-                                             settings_item_selected_callback, callback_to_submenu, view_dispatcher, this))
-    {
-        return false;
-    }
-
-    variable_item_wifi_ssid = variable_item_list_add(variable_item_list, "WiFi SSID", 1, nullptr, nullptr);
-    variable_item_wifi_pass = variable_item_list_add(variable_item_list, "WiFi Password", 1, nullptr, nullptr);
-
-    variable_item_set_current_value_text(variable_item_wifi_ssid, "");
-    variable_item_set_current_value_text(variable_item_wifi_pass, "");
-
-    return true;
+    UNUSED(context);
+    return HelloWorldViewSubmenu;
 }
 
 void HelloWorldSettings::free()
 {
     // Free text input first
-    free_text_input();
+    freeTextInput();
 
     if (variable_item_list && view_dispatcher_ref && *view_dispatcher_ref)
     {
@@ -64,63 +38,63 @@ void HelloWorldSettings::free()
     }
 }
 
-// Text input callback wrappers
-void HelloWorldSettings::text_updated_ssid_callback(void *context)
+void HelloWorldSettings::freeTextInput()
 {
-    HelloWorldSettings *settings = (HelloWorldSettings *)context;
-    settings->text_updated(TextInputWiFiSSID);
+    if (text_input && view_dispatcher_ref && *view_dispatcher_ref)
+    {
+        view_dispatcher_remove_view(*view_dispatcher_ref, HelloWorldViewTextInput);
+        uart_text_input_free(text_input);
+        text_input = nullptr;
+    }
+    text_input_buffer.reset();
+    text_input_temp_buffer.reset();
 }
 
-void HelloWorldSettings::text_updated_pass_callback(void *context)
+bool HelloWorldSettings::init(ViewDispatcher **view_dispatcher, void *appContext)
 {
-    HelloWorldSettings *settings = (HelloWorldSettings *)context;
-    settings->text_updated(TextInputWiFiPassword);
-}
+    view_dispatcher_ref = view_dispatcher;
+    this->appContext = appContext;
 
-void HelloWorldSettings::text_updated(uint32_t view)
-{
-    // store the entered text
-    strncpy(text_input_buffer.get(), text_input_temp_buffer.get(), text_input_buffer_size);
+    if (!easy_flipper_set_variable_item_list(&variable_item_list, HelloWorldViewSettings,
+                                             settingsItemSelectedCallback, callbackToSubmenu, view_dispatcher, this))
+    {
+        return false;
+    }
 
-    // Ensure null-termination
-    text_input_buffer[text_input_buffer_size - 1] = '\0';
+    variable_item_wifi_ssid = variable_item_list_add(variable_item_list, "WiFi SSID", 1, nullptr, nullptr);
+    variable_item_wifi_pass = variable_item_list_add(variable_item_list, "WiFi Password", 1, nullptr, nullptr);
+    variable_item_connect = variable_item_list_add(variable_item_list, "Connect", 1, nullptr, nullptr);
 
-    // app context
+    char loaded_ssid[64];
+    char loaded_pass[64];
     HelloWorldApp *app = static_cast<HelloWorldApp *>(appContext);
-
-    switch (view)
+    if (app->loadChar("wifi_ssid", loaded_ssid, sizeof(loaded_ssid)))
     {
-    case TextInputWiFiSSID:
-        if (variable_item_wifi_ssid)
-        {
-            variable_item_set_current_value_text(variable_item_wifi_ssid, text_input_buffer.get());
-        }
-        app->save_char("wifi_ssid", text_input_buffer.get());
-        break;
-    case TextInputWiFiPassword:
-        if (variable_item_wifi_pass)
-        {
-            variable_item_set_current_value_text(variable_item_wifi_pass, text_input_buffer.get());
-        }
-        app->save_char("wifi_pass", text_input_buffer.get());
-        break;
-    default:
-        break;
+        variable_item_set_current_value_text(variable_item_wifi_ssid, loaded_ssid);
     }
-
-    // switch to the settings view
-    if (view_dispatcher_ref && *view_dispatcher_ref)
+    else
     {
-        view_dispatcher_switch_to_view(*view_dispatcher_ref, HelloWorldViewSettings);
+        variable_item_set_current_value_text(variable_item_wifi_ssid, "");
     }
+    if (app->loadChar("wifi_pass", loaded_pass, sizeof(loaded_pass)))
+    {
+        variable_item_set_current_value_text(variable_item_wifi_pass, "*****");
+    }
+    else
+    {
+        variable_item_set_current_value_text(variable_item_wifi_pass, "");
+    }
+    variable_item_set_current_value_text(variable_item_connect, "");
+
+    return true;
 }
 
-bool HelloWorldSettings::init_text_input(uint32_t view)
+bool HelloWorldSettings::initTextInput(uint32_t view)
 {
     // check if already initialized
     if (text_input_buffer || text_input_temp_buffer)
     {
-        FURI_LOG_E(TAG, "init_text_input: already initialized");
+        FURI_LOG_E(TAG, "initTextInput: already initialized");
         return false;
     }
 
@@ -139,9 +113,9 @@ bool HelloWorldSettings::init_text_input(uint32_t view)
     HelloWorldApp *app = static_cast<HelloWorldApp *>(appContext);
     char loaded[256];
 
-    if (view == TextInputWiFiSSID)
+    if (view == SettingsViewSSID)
     {
-        if (app->load_char("wifi_ssid", loaded, sizeof(loaded)))
+        if (app->loadChar("wifi_ssid", loaded, sizeof(loaded)))
         {
             strncpy(text_input_temp_buffer.get(), loaded, text_input_buffer_size);
         }
@@ -150,13 +124,13 @@ bool HelloWorldSettings::init_text_input(uint32_t view)
             text_input_temp_buffer[0] = '\0'; // Ensure empty if not loaded
         }
         text_input_temp_buffer[text_input_buffer_size - 1] = '\0'; // Ensure null-termination
-        return easy_flipper_set_text_input(&text_input, HelloWorldViewTextInput,
-                                           "Enter SSID", text_input_temp_buffer.get(), text_input_buffer_size,
-                                           text_updated_ssid_callback, callback_to_settings, view_dispatcher_ref, this);
+        return easy_flipper_set_uart_text_input(&text_input, HelloWorldViewTextInput,
+                                                "Enter SSID", text_input_temp_buffer.get(), text_input_buffer_size,
+                                                textUpdatedSsidCallback, callbackToSettings, view_dispatcher_ref, this);
     }
-    else if (view == TextInputWiFiPassword)
+    else if (view == SettingsViewPassword)
     {
-        if (app->load_char("wifi_pass", loaded, sizeof(loaded)))
+        if (app->loadChar("wifi_pass", loaded, sizeof(loaded)))
         {
             strncpy(text_input_temp_buffer.get(), loaded, text_input_buffer_size);
         }
@@ -165,29 +139,53 @@ bool HelloWorldSettings::init_text_input(uint32_t view)
             text_input_temp_buffer[0] = '\0'; // Ensure empty if not loaded
         }
         text_input_temp_buffer[text_input_buffer_size - 1] = '\0'; // Ensure null-termination
-        return easy_flipper_set_text_input(&text_input, HelloWorldViewTextInput,
-                                           "Enter Password", text_input_temp_buffer.get(), text_input_buffer_size,
-                                           text_updated_pass_callback, callback_to_settings, view_dispatcher_ref, this);
+        return easy_flipper_set_uart_text_input(&text_input, HelloWorldViewTextInput,
+                                                "Enter Password", text_input_temp_buffer.get(), text_input_buffer_size,
+                                                textUpdatedPassCallback, callbackToSettings, view_dispatcher_ref, this);
     }
     return false;
 }
 
-void HelloWorldSettings::free_text_input()
+void HelloWorldSettings::settingsItemSelected(uint32_t index)
 {
-    if (text_input && view_dispatcher_ref && *view_dispatcher_ref)
+    switch (index)
     {
-        view_dispatcher_remove_view(*view_dispatcher_ref, HelloWorldViewTextInput);
-        text_input_free(text_input);
-        text_input = nullptr;
+    case SettingsViewSSID:
+    case SettingsViewPassword:
+        startTextInput(index);
+        break;
+    case SettingsViewConnect:
+    {
+        HelloWorldApp *app = static_cast<HelloWorldApp *>(appContext);
+        char loaded_ssid[64];
+        char loaded_pass[64];
+        if (!app->loadChar("wifi_ssid", loaded_ssid, sizeof(loaded_ssid)) ||
+            !app->loadChar("wifi_pass", loaded_pass, sizeof(loaded_pass)))
+        {
+            FURI_LOG_E(TAG, "WiFi credentials not set");
+            easy_flipper_dialog("No WiFi Credentials", "Please set your WiFi SSID\nand Password in Settings.");
+        }
+        else
+        {
+            app->sendWiFiCredentials(loaded_ssid, loaded_pass);
+        }
     }
-    text_input_buffer.reset();
-    text_input_temp_buffer.reset();
+    break;
+    default:
+        break;
+    };
 }
 
-bool HelloWorldSettings::start_text_input(uint32_t view)
+void HelloWorldSettings::settingsItemSelectedCallback(void *context, uint32_t index)
 {
-    free_text_input();
-    if (!init_text_input(view))
+    HelloWorldSettings *settings = (HelloWorldSettings *)context;
+    settings->settingsItemSelected(index);
+}
+
+bool HelloWorldSettings::startTextInput(uint32_t view)
+{
+    freeTextInput();
+    if (!initTextInput(view))
     {
         FURI_LOG_E(TAG, "Failed to initialize text input for view %lu", view);
         return false;
@@ -204,7 +202,52 @@ bool HelloWorldSettings::start_text_input(uint32_t view)
     }
 }
 
-void HelloWorldSettings::settingsItemSelected(uint32_t index)
+void HelloWorldSettings::textUpdated(uint32_t view)
 {
-    start_text_input(index);
+    // store the entered text
+    strncpy(text_input_buffer.get(), text_input_temp_buffer.get(), text_input_buffer_size);
+
+    // Ensure null-termination
+    text_input_buffer[text_input_buffer_size - 1] = '\0';
+
+    // app context
+    HelloWorldApp *app = static_cast<HelloWorldApp *>(appContext);
+
+    switch (view)
+    {
+    case SettingsViewSSID:
+        if (variable_item_wifi_ssid)
+        {
+            variable_item_set_current_value_text(variable_item_wifi_ssid, text_input_buffer.get());
+        }
+        app->saveChar("wifi_ssid", text_input_buffer.get());
+        break;
+    case SettingsViewPassword:
+        if (variable_item_wifi_pass)
+        {
+            variable_item_set_current_value_text(variable_item_wifi_pass, text_input_buffer.get());
+        }
+        app->saveChar("wifi_pass", text_input_buffer.get());
+        break;
+    default:
+        break;
+    }
+
+    // switch to the settings view
+    if (view_dispatcher_ref && *view_dispatcher_ref)
+    {
+        view_dispatcher_switch_to_view(*view_dispatcher_ref, HelloWorldViewSettings);
+    }
+}
+
+void HelloWorldSettings::textUpdatedSsidCallback(void *context)
+{
+    HelloWorldSettings *settings = (HelloWorldSettings *)context;
+    settings->textUpdated(SettingsViewSSID);
+}
+
+void HelloWorldSettings::textUpdatedPassCallback(void *context)
+{
+    HelloWorldSettings *settings = (HelloWorldSettings *)context;
+    settings->textUpdated(SettingsViewPassword);
 }

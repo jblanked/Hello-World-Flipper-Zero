@@ -43,7 +43,11 @@ void HelloWorldSettings::freeTextInput()
     if (text_input && view_dispatcher_ref && *view_dispatcher_ref)
     {
         view_dispatcher_remove_view(*view_dispatcher_ref, HelloWorldViewTextInput);
+#ifndef FW_ORIGIN_Momentum
         uart_text_input_free(text_input);
+#else
+        text_input_free(text_input);
+#endif
         text_input = nullptr;
     }
     text_input_buffer.reset();
@@ -124,9 +128,15 @@ bool HelloWorldSettings::initTextInput(uint32_t view)
             text_input_temp_buffer[0] = '\0'; // Ensure empty if not loaded
         }
         text_input_temp_buffer[text_input_buffer_size - 1] = '\0'; // Ensure null-termination
+#ifndef FW_ORIGIN_Momentum
         return easy_flipper_set_uart_text_input(&text_input, HelloWorldViewTextInput,
                                                 "Enter SSID", text_input_temp_buffer.get(), text_input_buffer_size,
                                                 textUpdatedSsidCallback, callbackToSettings, view_dispatcher_ref, this);
+#else
+        return easy_flipper_set_text_input(&text_input, HelloWorldViewTextInput,
+                                           "Enter SSID", text_input_temp_buffer.get(), text_input_buffer_size,
+                                           textUpdatedSsidCallback, callbackToSettings, view_dispatcher_ref, this);
+#endif
     }
     else if (view == SettingsViewPassword)
     {
@@ -139,9 +149,15 @@ bool HelloWorldSettings::initTextInput(uint32_t view)
             text_input_temp_buffer[0] = '\0'; // Ensure empty if not loaded
         }
         text_input_temp_buffer[text_input_buffer_size - 1] = '\0'; // Ensure null-termination
+#ifndef FW_ORIGIN_Momentum
         return easy_flipper_set_uart_text_input(&text_input, HelloWorldViewTextInput,
                                                 "Enter Password", text_input_temp_buffer.get(), text_input_buffer_size,
                                                 textUpdatedPassCallback, callbackToSettings, view_dispatcher_ref, this);
+#else
+        return easy_flipper_set_text_input(&text_input, HelloWorldViewTextInput,
+                                           "Enter Password", text_input_temp_buffer.get(), text_input_buffer_size,
+                                           textUpdatedPassCallback, callbackToSettings, view_dispatcher_ref, this);
+#endif
     }
     return false;
 }

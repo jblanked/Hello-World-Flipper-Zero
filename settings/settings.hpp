@@ -13,8 +13,12 @@ typedef enum
 class HelloWorldSettings
 {
 private:
-    void *appContext = nullptr;                      // reference to the app context
-    UART_TextInput *text_input = nullptr;            // UART text input instance
+    void *appContext = nullptr; // reference to the app context
+#ifndef FW_ORIGIN_Momentum
+    UART_TextInput *text_input = nullptr; // UART text input instance
+#else
+    TextInput *text_input = nullptr; // Original text input instance for Momentum
+#endif
     std::unique_ptr<char[]> text_input_buffer;       // buffer for text input
     uint32_t text_input_buffer_size = 128;           // size of the text input buffer
     std::unique_ptr<char[]> text_input_temp_buffer;  // temporary buffer for text input

@@ -115,6 +115,13 @@ void HelloWorldApp::callbackSubmenuChoices(uint32_t index)
         view_port_input_callback_set(viewPort, viewPortInput, this);
         gui_add_view_port(gui, viewPort, GuiLayerFullscreen);
 
+        if (timer)
+        {
+            furi_timer_stop(timer);
+            furi_timer_free(timer);
+            timer = nullptr;
+        }
+
         // Start the timer for game updates
         if (!timer)
         {
@@ -427,36 +434,6 @@ void HelloWorldApp::timerCallback(void *context)
         }
         else
         {
-            // Stop the timer first
-            if (app->timer)
-            {
-                furi_timer_stop(app->timer);
-            }
-
-            // Remove viewport
-            if (app->gui && app->viewPort)
-            {
-                gui_remove_view_port(app->gui, app->viewPort);
-                view_port_free(app->viewPort);
-                app->viewPort = nullptr;
-            }
-        }
-    }
-}
-
-void HelloWorldApp::viewPortDraw(Canvas *canvas, void *context)
-{
-    HelloWorldApp *app = static_cast<HelloWorldApp *>(context);
-    furi_check(app);
-    auto run = app->run.get();
-    if (run)
-    {
-        if (run->isActive())
-        {
-            run->updateDraw(canvas);
-        }
-        else
-        {
             // Stop and cleanup timer first
             if (app->timer)
             {
@@ -470,9 +447,24 @@ void HelloWorldApp::viewPortDraw(Canvas *canvas, void *context)
                 view_port_free(app->viewPort);
                 app->viewPort = nullptr;
             }
+
+            view_dispatcher_switch_to_view(app->viewDispatcher, HelloWorldViewSubmenu);
+            app->run.reset();
         }
     }
 }
+
+void HelloWorldApp::viewPortDraw(Canvas *canvas, void *context)
+{
+    HelloWorldApp *app = static_cast<HelloWorldApp *>(context);
+    furi_check(app);
+    auto run = app->run.get();
+    if (run && run->isActive())
+    {
+        run->updateDraw(canvas);
+    }
+}
+
 void HelloWorldApp::viewPortInput(InputEvent *event, void *context)
 {
     HelloWorldApp *app = static_cast<HelloWorldApp *>(context);

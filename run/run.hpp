@@ -5,9 +5,10 @@ class HelloWorldApp;
 
 class HelloWorldRun
 {
-    bool shouldReturnToMenu = false; // Flag to signal return to menu
+    void *appContext;        // reference to the app context
+    bool shouldReturnToMenu; // Flag to signal return to menu
 public:
-    HelloWorldRun();
+    HelloWorldRun(void *appContext);
     ~HelloWorldRun();
     //
     bool isActive() const { return shouldReturnToMenu == false; } // Check if the run is active

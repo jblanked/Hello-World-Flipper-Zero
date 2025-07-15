@@ -1,22 +1,11 @@
 #include "about/about.hpp"
 
-HelloWorldAbout::HelloWorldAbout()
+HelloWorldAbout::HelloWorldAbout(ViewDispatcher **viewDispatcher) : widget(nullptr), viewDispatcherRef(viewDispatcher)
 {
-    // nothing to do
+    easy_flipper_set_widget(&widget, HelloWorldViewAbout, "Simple C++ Flipper app\n\n\n\n\nwww.github.com/jblanked", callbackToSubmenu, viewDispatcherRef);
 }
 
 HelloWorldAbout::~HelloWorldAbout()
-{
-    free();
-}
-
-uint32_t HelloWorldAbout::callbackToSubmenu(void *context)
-{
-    UNUSED(context);
-    return HelloWorldViewSubmenu;
-}
-
-void HelloWorldAbout::free()
 {
     if (widget && viewDispatcherRef && *viewDispatcherRef)
     {
@@ -26,9 +15,8 @@ void HelloWorldAbout::free()
     }
 }
 
-bool HelloWorldAbout::init(ViewDispatcher **viewDispatcher, void *appContext)
+uint32_t HelloWorldAbout::callbackToSubmenu(void *context)
 {
-    viewDispatcherRef = viewDispatcher;
-    this->appContext = appContext;
-    return easy_flipper_set_widget(&widget, HelloWorldViewAbout, "Simple C++ Flipper app\n\n\n\n\nwww.github.com/jblanked", callbackToSubmenu, viewDispatcherRef);
+    UNUSED(context);
+    return HelloWorldViewSubmenu;
 }

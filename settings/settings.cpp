@@ -1,68 +1,12 @@
 #include "settings.hpp"
 #include "app.hpp"
 
-HelloWorldSettings::HelloWorldSettings()
+HelloWorldSettings::HelloWorldSettings(ViewDispatcher **view_dispatcher, void *appContext) : appContext(appContext), view_dispatcher_ref(view_dispatcher)
 {
-    // nothing to do
-}
-
-HelloWorldSettings::~HelloWorldSettings()
-{
-    free();
-}
-
-uint32_t HelloWorldSettings::callbackToSettings(void *context)
-{
-    UNUSED(context);
-    return HelloWorldViewSettings;
-}
-
-uint32_t HelloWorldSettings::callbackToSubmenu(void *context)
-{
-    UNUSED(context);
-    return HelloWorldViewSubmenu;
-}
-
-void HelloWorldSettings::free()
-{
-    // Free text input first
-    freeTextInput();
-
-    if (variable_item_list && view_dispatcher_ref && *view_dispatcher_ref)
-    {
-        view_dispatcher_remove_view(*view_dispatcher_ref, HelloWorldViewSettings);
-        variable_item_list_free(variable_item_list);
-        variable_item_list = nullptr;
-        variable_item_wifi_ssid = nullptr;
-        variable_item_wifi_pass = nullptr;
-    }
-}
-
-void HelloWorldSettings::freeTextInput()
-{
-    if (text_input && view_dispatcher_ref && *view_dispatcher_ref)
-    {
-        view_dispatcher_remove_view(*view_dispatcher_ref, HelloWorldViewTextInput);
-#ifndef FW_ORIGIN_Momentum
-        uart_text_input_free(text_input);
-#else
-        text_input_free(text_input);
-#endif
-        text_input = nullptr;
-    }
-    text_input_buffer.reset();
-    text_input_temp_buffer.reset();
-}
-
-bool HelloWorldSettings::init(ViewDispatcher **view_dispatcher, void *appContext)
-{
-    view_dispatcher_ref = view_dispatcher;
-    this->appContext = appContext;
-
     if (!easy_flipper_set_variable_item_list(&variable_item_list, HelloWorldViewSettings,
                                              settingsItemSelectedCallback, callbackToSubmenu, view_dispatcher, this))
     {
-        return false;
+        return;
     }
 
     variable_item_wifi_ssid = variable_item_list_add(variable_item_list, "WiFi SSID", 1, nullptr, nullptr);
@@ -89,8 +33,49 @@ bool HelloWorldSettings::init(ViewDispatcher **view_dispatcher, void *appContext
         variable_item_set_current_value_text(variable_item_wifi_pass, "");
     }
     variable_item_set_current_value_text(variable_item_connect, "");
+}
 
-    return true;
+HelloWorldSettings::~HelloWorldSettings()
+{
+    // Free text input first
+    freeTextInput();
+
+    if (variable_item_list && view_dispatcher_ref && *view_dispatcher_ref)
+    {
+        view_dispatcher_remove_view(*view_dispatcher_ref, HelloWorldViewSettings);
+        variable_item_list_free(variable_item_list);
+        variable_item_list = nullptr;
+        variable_item_wifi_ssid = nullptr;
+        variable_item_wifi_pass = nullptr;
+    }
+}
+
+uint32_t HelloWorldSettings::callbackToSettings(void *context)
+{
+    UNUSED(context);
+    return HelloWorldViewSettings;
+}
+
+uint32_t HelloWorldSettings::callbackToSubmenu(void *context)
+{
+    UNUSED(context);
+    return HelloWorldViewSubmenu;
+}
+
+void HelloWorldSettings::freeTextInput()
+{
+    if (text_input && view_dispatcher_ref && *view_dispatcher_ref)
+    {
+        view_dispatcher_remove_view(*view_dispatcher_ref, HelloWorldViewTextInput);
+#ifndef FW_ORIGIN_Momentum
+        uart_text_input_free(text_input);
+#else
+        text_input_free(text_input);
+#endif
+        text_input = nullptr;
+    }
+    text_input_buffer.reset();
+    text_input_temp_buffer.reset();
 }
 
 bool HelloWorldSettings::initTextInput(uint32_t view)

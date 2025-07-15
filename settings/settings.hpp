@@ -13,7 +13,7 @@ typedef enum
 class HelloWorldSettings
 {
 private:
-    void *appContext = nullptr; // reference to the app context
+    void *appContext; // reference to the app context
 #ifndef FW_ORIGIN_Momentum
     UART_TextInput *text_input = nullptr; // UART text input instance
 #else
@@ -26,7 +26,7 @@ private:
     VariableItem *variable_item_connect = nullptr;   // variable item for "Connect" button
     VariableItem *variable_item_wifi_ssid = nullptr; // variable item for WiFi SSID
     VariableItem *variable_item_wifi_pass = nullptr; // variable item for WiFi Password
-    ViewDispatcher **view_dispatcher_ref = nullptr;  // reference to the view dispatcher
+    ViewDispatcher **view_dispatcher_ref;            // reference to the view dispatcher
 
     static uint32_t callbackToSubmenu(void *context);                        // callback to switch to the main menu
     static uint32_t callbackToSettings(void *context);                       // callback to switch to the settings view
@@ -39,10 +39,8 @@ private:
     static void textUpdatedPassCallback(void *context);                      // callback for WiFi Password text update
 
 public:
-    HelloWorldSettings();
+    HelloWorldSettings(ViewDispatcher **view_dispatcher, void *appContext);
     ~HelloWorldSettings();
 
-    void free();                                                   // free the settings resources
-    bool init(ViewDispatcher **view_dispatcher, void *appContext); // initialize the settings
-    void settingsItemSelected(uint32_t index);                     // handle settings item selection
+    void settingsItemSelected(uint32_t index); // handle settings item selection
 };

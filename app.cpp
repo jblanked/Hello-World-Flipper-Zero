@@ -109,12 +109,18 @@ void HelloWorldApp::callbackSubmenuChoices(uint32_t index)
     switch (index)
     {
     case HelloWorldSubmenuRun:
-        run = std::make_unique<HelloWorldRun>();
+        if (!run)
+        {
+            run = std::make_unique<HelloWorldRun>(this);
+        }
+
+        // setup view port
         viewPort = view_port_alloc();
         view_port_draw_callback_set(viewPort, viewPortDraw, this);
         view_port_input_callback_set(viewPort, viewPortInput, this);
         gui_add_view_port(gui, viewPort, GuiLayerFullscreen);
 
+        // make sure timer is free
         if (timer)
         {
             furi_timer_stop(timer);
@@ -133,22 +139,16 @@ void HelloWorldApp::callbackSubmenuChoices(uint32_t index)
         }
         break;
     case HelloWorldSubmenuAbout:
-        about = std::make_unique<HelloWorldAbout>();
-        if (!about->init(&viewDispatcher, this))
+        if (!about)
         {
-            FURI_LOG_E(TAG, "Failed to initialize about");
-            about.reset();
-            return;
+            about = std::make_unique<HelloWorldAbout>(&viewDispatcher);
         }
         view_dispatcher_switch_to_view(viewDispatcher, HelloWorldViewAbout);
         break;
     case HelloWorldSubmenuSettings:
-        settings = std::make_unique<HelloWorldSettings>();
-        if (!settings->init(&viewDispatcher, this))
+        if (!settings)
         {
-            FURI_LOG_E(TAG, "Failed to initialize settings");
-            settings.reset();
-            return;
+            settings = std::make_unique<HelloWorldSettings>(&viewDispatcher, this);
         }
         view_dispatcher_switch_to_view(viewDispatcher, HelloWorldViewSettings);
         break;

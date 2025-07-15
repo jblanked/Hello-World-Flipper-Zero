@@ -1,9 +1,8 @@
 #include "run/run.hpp"
 #include "app.hpp"
 
-HelloWorldRun::HelloWorldRun()
+HelloWorldRun::HelloWorldRun(void *appContext) : appContext(appContext), shouldReturnToMenu(false)
 {
-    // nothing to do
 }
 
 HelloWorldRun::~HelloWorldRun()

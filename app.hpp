@@ -67,11 +67,12 @@ public:
         const char *headers = "{\"Content-Type\": \"application/json\"}",                              // Headers to include in the request
         const char *payload = nullptr);                                                                // Payload to send with the request (for POST, PUT, etc.)
     bool isBoardConnected();                                                                           // check if the board is connected
-    bool loadChar(const char *path_name, char *value, size_t value_size);                              // load a string from storage
+    bool loadChar(const char *path_name, char *value, size_t value_size, const char *appId = APP_ID);  // load a string from storage
     bool loadFileChunk(const char *filePath, char *buffer, size_t sizeOfChunk, uint8_t iteration);     // Load a file chunk from storage
     void runDispatcher();                                                                              // run the app's view dispatcher to handle views and events
-    bool saveChar(const char *path_name, const char *value);                                           // save a string to storage
+    bool saveChar(const char *path_name, const char *value, const char *appId = APP_ID);               // save a string to storage
     bool setHttpState(HTTPState state = IDLE) noexcept;                                                // set the HTTP state
+    bool sendHTTPCommand(HTTPCommand command);                                                         // send a command to the board (e.g., ping, reset, etc.)
     bool sendWiFiCredentials(const char *ssid, const char *password);                                  // send WiFi credentials to the board
     static void viewPortDraw(Canvas *canvas, void *context);                                           // draw callback for the ViewPort (used in run instance)
     static void viewPortInput(InputEvent *event, void *context);                                       // input callback for the ViewPort (used in run instance)

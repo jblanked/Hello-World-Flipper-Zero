@@ -62,16 +62,21 @@ extern "C"
 
     typedef enum
     {
-        HTTP_CMD_WIFI_CONNECT,
-        HTTP_CMD_WIFI_DISCONNECT,
-        HTTP_CMD_IP_ADDRESS,
-        HTTP_CMD_IP_WIFI,
-        HTTP_CMD_SCAN,
-        HTTP_CMD_LIST_COMMANDS,
-        HTTP_CMD_LED_ON,
-        HTTP_CMD_LED_OFF,
-        HTTP_CMD_PING
-    } HTTPCommand; // list of non-input commands
+        HTTP_CMD_WIFI_CONNECT,    // [WIFI/CONNECT] - connect to a WiFi network
+        HTTP_CMD_WIFI_DISCONNECT, // [WIFI/DISCONNECT] - disconnect from the current WiFi network
+        HTTP_CMD_IP_ADDRESS,      // [IP/ADDRESS] - get the current IP address of the device
+        HTTP_CMD_IP_WIFI,         // [WIFI/IP] - get the current IP address of the WiFi interface
+        HTTP_CMD_SCAN,            // [WIFI/SCAN] - scan for available WiFi networks
+        HTTP_CMD_LIST_COMMANDS,   // [LIST] - list all available commands
+        HTTP_CMD_LED_ON,          // [LED/ON] - allow LED blinking when processing
+        HTTP_CMD_LED_OFF,         // [LED/OFF] - disable LED blinking when processing
+        HTTP_CMD_PING,            // [PING] - respond with [PONG]
+        HTTP_CMD_VERSION,         // [VERSION] - get the current version of the firmware
+        HTTP_CMD_STATUS,          // [WIFI/STATUS] - check if connected to WiFi
+        HTTP_CMD_REBOOT,          // [REBOOT] - reboot the device
+        HTTP_CMD_SSID,            // [WIFI/SSID] - get the current connected SSID
+        HTTP_CMD_WIFI_LIST,       // [WIFI/LIST] - list saved WiFi networks
+    } HTTPCommand;                // list of non-input commands
 
     // FlipperHTTP Structure
     typedef struct

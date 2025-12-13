@@ -246,12 +246,12 @@ bool HelloWorldApp::isBoardConnected()
     return flipperHttp->last_response && strcmp(flipperHttp->last_response, "[PONG]") == 0;
 }
 
-bool HelloWorldApp::loadChar(const char *path_name, char *value, size_t value_size)
+bool HelloWorldApp::loadChar(const char *path_name, char *value, size_t value_size, const char *appId)
 {
     Storage *storage = static_cast<Storage *>(furi_record_open(RECORD_STORAGE));
     File *file = storage_file_alloc(storage);
     char file_path[256];
-    snprintf(file_path, sizeof(file_path), STORAGE_EXT_PATH_PREFIX "/apps_data/%s/data/%s.txt", APP_ID, path_name);
+    snprintf(file_path, sizeof(file_path), STORAGE_EXT_PATH_PREFIX "/apps_data/%s/data/%s.txt", appId, path_name);
     if (!storage_file_open(file, file_path, FSAM_READ, FSOM_OPEN_EXISTING))
     {
         storage_file_free(file);
@@ -363,12 +363,12 @@ void HelloWorldApp::runDispatcher()
     view_dispatcher_run(viewDispatcher);
 }
 
-bool HelloWorldApp::saveChar(const char *path_name, const char *value)
+bool HelloWorldApp::saveChar(const char *path_name, const char *value, const char *appId)
 {
     Storage *storage = static_cast<Storage *>(furi_record_open(RECORD_STORAGE));
     File *file = storage_file_alloc(storage);
     char file_path[256];
-    snprintf(file_path, sizeof(file_path), STORAGE_EXT_PATH_PREFIX "/apps_data/%s/data/%s.txt", APP_ID, path_name);
+    snprintf(file_path, sizeof(file_path), STORAGE_EXT_PATH_PREFIX "/apps_data/%s/data/%s.txt", appId, path_name);
     storage_file_open(file, file_path, FSAM_WRITE, FSOM_CREATE_ALWAYS);
     size_t data_size = strlen(value) + 1; // Include null terminator
     storage_file_write(file, value, data_size);
@@ -376,6 +376,16 @@ bool HelloWorldApp::saveChar(const char *path_name, const char *value)
     storage_file_free(file);
     furi_record_close(RECORD_STORAGE);
     return true;
+}
+
+bool HelloWorldApp::sendHTTPCommand(HTTPCommand command)
+{
+    if (!flipperHttp)
+    {
+        FURI_LOG_E(TAG, "FlipperHTTP is not initialized");
+        return false;
+    }
+    return flipper_http_send_command(flipperHttp, command);
 }
 
 bool HelloWorldApp::sendWiFiCredentials(const char *ssid, const char *password)

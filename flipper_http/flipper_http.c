@@ -287,6 +287,54 @@ FlipperHTTP *flipper_http_alloc()
     return fhttp;
 }
 
+/**
+ * @brief      Send a command to deauthenticate a WiFi network.
+ * @return     true if the request was successful, false otherwise.
+ * @param fhttp The FlipperHTTP context
+ * @note       The received data will be handled asynchronously via the callback.
+ */
+bool flipper_http_deauth_start(FlipperHTTP *fhttp, const char *ssid)
+{
+    if (!fhttp)
+    {
+        FURI_LOG_E(HTTP_TAG, "flipper_http_deauth_start: Failed to get context.");
+        return false;
+    }
+    if (!ssid)
+    {
+        FURI_LOG_E("FlipperHTTP", "Invalid arguments provided to flipper_http_deauth_start.");
+        return false;
+    }
+
+    char buffer[256];
+
+    int ret = snprintf(buffer, sizeof(buffer), "[DEAUTH]{\"ssid\":\"%s\"}", ssid);
+
+    if (ret < 0 || ret >= (int)sizeof(buffer))
+    {
+        FURI_LOG_E("FlipperHTTP", "Failed to format WiFi deauth command.");
+        return false;
+    }
+
+    return flipper_http_send_data(fhttp, buffer);
+}
+
+/**
+ * @brief      Send a request to stop the deauth
+ * @return     true if the request was successful, false otherwise.
+ * @param fhttp The FlipperHTTP context
+ * @note       The received data will be handled asynchronously via the callback.
+ */
+bool flipper_http_deauth_stop(FlipperHTTP *fhttp)
+{
+    if (!fhttp)
+    {
+        FURI_LOG_E(HTTP_TAG, "flipper_http_deauth_stop: Failed to get context.");
+        return false;
+    }
+    return flipper_http_send_data(fhttp, "[DEAUTH/STOP]");
+}
+
 // Deinitialize UART
 /**
  * @brief      Deinitialize UART.
@@ -962,8 +1010,10 @@ bool flipper_http_send_command(FlipperHTTP *fhttp, HTTPCommand command)
     case HTTP_CMD_IP_ADDRESS:
         return flipper_http_send_data(fhttp, "[IP/ADDRESS]");
     case HTTP_CMD_IP_WIFI:
+        fhttp->method = GET;
         return flipper_http_send_data(fhttp, "[WIFI/IP]");
     case HTTP_CMD_SCAN:
+        fhttp->method = GET;
         return flipper_http_send_data(fhttp, "[WIFI/SCAN]");
     case HTTP_CMD_LIST_COMMANDS:
         return flipper_http_send_data(fhttp, "[LIST]");
@@ -974,6 +1024,16 @@ bool flipper_http_send_command(FlipperHTTP *fhttp, HTTPCommand command)
     case HTTP_CMD_PING:
         fhttp->state = INACTIVE; // set state as INACTIVE to be made IDLE if PONG is received
         return flipper_http_send_data(fhttp, "[PING]");
+    case HTTP_CMD_VERSION:
+        return flipper_http_send_data(fhttp, "[VERSION]");
+    case HTTP_CMD_STATUS:
+        return flipper_http_send_data(fhttp, "[WIFI/STATUS]");
+    case HTTP_CMD_REBOOT:
+        return flipper_http_send_data(fhttp, "[REBOOT]");
+    case HTTP_CMD_SSID:
+        return flipper_http_send_data(fhttp, "[WIFI/SSID]");
+    case HTTP_CMD_WIFI_LIST:
+        return flipper_http_send_data(fhttp, "[WIFI/LIST]");
     default:
         FURI_LOG_E(HTTP_TAG, "Invalid command.");
         return false;
@@ -1186,7 +1246,7 @@ static void flipper_http_rx_callback(const char *line, void *context)
     }
 
     // Uncomment below line to log the data received over UART
-    //(HTTP_TAG, "Received UART line: %s", line);
+    // FURI_LOG_I(HTTP_TAG, "Received UART line: %s", line);
 
     // Check if we've started receiving data from a GET request
     if (fhttp->started_receiving && (fhttp->method == GET || fhttp->method == BYTES))

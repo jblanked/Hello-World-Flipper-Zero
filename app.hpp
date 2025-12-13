@@ -39,7 +39,7 @@ private:
     //
     static uint32_t callbackExitApp(void *context);                    // Callback to exit the app
     void callbackSubmenuChoices(uint32_t index);                       // Callback for submenu choices
-    void createAppDataPath();                                          // Create the app data path in storage
+    void createAppDataPath(const char *appId = APP_ID);                // Create the app data path in storage
     void settingsItemSelected(uint32_t index);                         // Handle settings item selection
     static void submenuChoicesCallback(void *context, uint32_t index); // Callback for submenu choices
     static void timerCallback(void *context);                          // Timer callback for run updates

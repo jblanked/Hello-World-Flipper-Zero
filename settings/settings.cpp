@@ -47,6 +47,7 @@ HelloWorldSettings::~HelloWorldSettings()
         variable_item_list = nullptr;
         variable_item_wifi_ssid = nullptr;
         variable_item_wifi_pass = nullptr;
+        variable_item_connect = nullptr;
     }
 }
 

@@ -477,6 +477,10 @@ void HelloWorldApp::viewPortDraw(Canvas *canvas, void *context)
 
 void HelloWorldApp::viewPortInput(InputEvent *event, void *context)
 {
+    if (event->type != InputTypeShort && event->type != InputTypeLong)
+    {
+        return;
+    }
     HelloWorldApp *app = static_cast<HelloWorldApp *>(context);
     furi_check(app);
     auto run = app->run.get();

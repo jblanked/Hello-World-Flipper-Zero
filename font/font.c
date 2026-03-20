@@ -5,6 +5,34 @@ static const uint8_t u8g2_font_6x10_tf[];
 static const uint8_t u8g2_font_5x8_tf[];
 static const uint8_t u8g2_font_9x15_tf[];
 
+static FontSize current_font_size = FONT_NOT_SET;
+
+size_t canvas_current_font_height_custom(Canvas *canvas)
+{
+    switch (current_font_size)
+    {
+    case FONT_SIZE_SMALL:
+        return 6;
+    case FONT_SIZE_MEDIUM:
+        return 8;
+    case FONT_SIZE_LARGE:
+        return 10;
+    case FONT_SIZE_XLARGE:
+        return 15;
+    default:
+        return canvas_current_font_height(canvas);
+    }
+}
+
+void canvas_draw_str_multi(Canvas *canvas, uint8_t x, uint8_t y, const char *str)
+{
+    if (!canvas || !str)
+    {
+        return;
+    }
+    elements_multiline_text(canvas, x, y, str);
+}
+
 bool canvas_set_font_custom(Canvas *canvas, FontSize font_size)
 {
     if (!canvas)
@@ -28,16 +56,29 @@ bool canvas_set_font_custom(Canvas *canvas, FontSize font_size)
     default:
         return false;
     }
+    current_font_size = font_size;
     return true;
 }
 
-void canvas_draw_str_multi(Canvas *canvas, uint8_t x, uint8_t y, const char *str)
+uint16_t canvas_string_width_custom(Canvas *canvas, const char *str)
 {
     if (!canvas || !str)
     {
-        return;
+        return 0;
     }
-    elements_multiline_text(canvas, x, y, str);
+    switch (current_font_size)
+    {
+    case FONT_SIZE_SMALL:
+        return strlen(str) * 4;
+    case FONT_SIZE_MEDIUM:
+        return strlen(str) * 5;
+    case FONT_SIZE_LARGE:
+        return strlen(str) * 6;
+    case FONT_SIZE_XLARGE:
+        return strlen(str) * 9;
+    default:
+        return canvas_string_width(canvas, str);
+    }
 }
 
 /*
